@@ -4,7 +4,7 @@ const http = require('http')
 const express = require('express')
 const socketIO = require('socket.io')
 
-const {generateMessage} = require('./utils/message.js')
+const {generateMessage, generateLocationMessage} = require('./utils/message.js')
 
 const app = express()
 const server = http.createServer(app)
@@ -26,11 +26,15 @@ io.on('connection', (socket) => {
         console.log(data)
 
         io.emit('newMessage', generateMessage(data.from, data.text))
-        callback('this is from the server')
+        callback()
     })
 
     socket.on('disconnect', () => {
         console.log('user is disconnected from the server')
+    })
+
+    socket.on('createLocationMessage', (data) => {
+        io.emit('newLocationMessage', generateLocationMessage('admin', data))
     })
 })
 
