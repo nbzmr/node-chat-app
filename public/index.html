@@ -1,39 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>join | chatapp</title>
     <link rel="stylesheet" href="./style/style.css">
 </head>
-
-<body class="chat">
-
-    <div class="chat__sidebar">
-        <h3>peoples</h3>
-        <div id="users">
-
+<body class="centered-form">
+    <div class="centered-form__form">
+        <form action="/chat.html">
+        <div class="form-field">
+            <h3>join a chat</h3>
         </div>
-    </div>
-
-    <div class="chat__main">
-        <ol id="messages" class="chat__messages"></ol>
-
-        <div class="chat__footer">
-            <form id="message-form">
-                <input type="text" name="message" placeholder="input your message" autofocus autocomplete="off">
-                <button>send</button>
-            </form>
-
-            <button id="send-location">send location</button>
+        
+        <div class="form-field">
+            <label>display name</label>
+            <input type="text" name="name" autofocus>
         </div>
+            
+        <div class="form-field">
+            <label>room name</label>
+            <input type="text" name="room">
+        </div>
+            
+        <div class="form-field">
+            <button>join</button>
+        </div>
+        </form>
     </div>
 
     <script src="./js/libs/jquery-3.3.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="./js/libs/moment.min.js"></script>
-    <script src="./js/index.js"></script>
+    <script src="./js/libs/mustache.js"></script>
 </body>
 </html>

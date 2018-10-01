@@ -5,10 +5,14 @@ const express = require('express')
 const socketIO = require('socket.io')
 
 const {generateMessage, generateLocationMessage} = require('./utils/message.js')
+const {stringValidator} = require('./utils/validator.js')
+const {Users} = require('./utils/users.js')
 
 const app = express()
 const server = http.createServer(app)
 const io = socketIO(server)
+
+const users = new Users()
 
 app.disable('x-powered-by')
 
@@ -16,25 +20,46 @@ const staticDirectoryPath = path.join(__dirname, '../public')
 app.use(express.static(staticDirectoryPath))
 
 io.on('connection', (socket) => {
-    console.log('new user connected')
-
-    socket.emit('newMessage', generateMessage('admin', 'welcome to the chat app'))
-
-    socket.broadcast.emit('newMessage', generateMessage('admin', 'new user joined'))
+    socket.on('join', (data, callback) => {
+        if (!stringValidator(data.name) || !stringValidator(data.room)) {
+            callback('name or room name is unvalid')
+            return
+        }
+        
+        socket.join(data.room)
+        users.removeUser(socket.id)
+        users.addUser(socket.id, data.name, data.room)
+        
+        io.to(data.room).emit('newUserList', users.getUserList(data.room))
+        socket.emit('newMessage', generateMessage('admin', 'welcome to the chat app'))
+        socket.broadcast.to(data.room).emit('newMessage', generateMessage('admin', `"${data.name}" joined`))
+    })
 
     socket.on('createMessage', (data, callback) => {
-        console.log(data)
+        const user = users.getUser(socket.id)
 
-        io.emit('newMessage', generateMessage(data.from, data.text))
+        if (user && stringValidator(data.text)) {
+           io.to(user.room).emit('newMessage', generateMessage(user.name, data.text)) 
+        }
+
         callback()
     })
 
-    socket.on('disconnect', () => {
-        console.log('user is disconnected from the server')
-    })
-
     socket.on('createLocationMessage', (data) => {
-        io.emit('newLocationMessage', generateLocationMessage('admin', data))
+        const user = users.getUser(socket.id)
+
+        if (user) {
+            io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, data))
+        }
+    })
+ 
+    socket.on('disconnect', () => {
+        const removedUser = users.removeUser(socket.id)
+        
+        if (removedUser) {
+            io.to(removedUser.room).emit('newUserList', users.getUserList(removedUser.room))
+            io.to(removedUser.room).emit('newMessage', generateMessage('admin', `"${removedUser.name}" has left`))
+        }
     })
 })
 
